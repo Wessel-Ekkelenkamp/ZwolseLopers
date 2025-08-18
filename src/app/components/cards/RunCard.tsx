@@ -25,7 +25,7 @@ export default function RunCard({
 }: RunCardProps) {
   return (
     <Card>
-      <h2 className="text-xl font-semibold mb-1">{title}</h2>
+      <h1 className="text-slate-800 font-semibold mb-1">{title}</h1>
       <p className="text-gray-500 text-sm mb-2">{date} • {time}</p>
       <p className="text-gray-700">
         <strong>Afstand:</strong> {distance} km<br />

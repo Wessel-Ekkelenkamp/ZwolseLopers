@@ -1,0 +1,38 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Created using Krita: https://krita.org -->
+<svg xmlns="http://www.w3.org/2000/svg" 
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:krita="http://krita.org/namespaces/svg/krita"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    width="76.2pt"
+    height="74.64pt"
+    viewBox="0 0 76.2 74.64">
+<defs>
+  <linearGradient id="gradient0" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="gradient1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="gradient2" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="gradient3" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="gradient4" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="gradient5" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1" spreadMethod="pad">
+   <stop stop-color="#254ba5" offset="0.194444444444444" stop-opacity="1"/>
+   <stop stop-color="#18a2da" offset="1" stop-opacity="1"/>
+  </linearGradient>
+ </defs>
+<path id="shape0" transform="translate(11.6999995350845, 13.0274990940847)" fill="#ff9843" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" d="M0 11.07L26.2294 0L52.1044 10.8337L26.2687 1.83937L0 11.07" sodipodi:nodetypes="ccccc"/><path id="shape1" transform="translate(11.4637495444723, 48.1387480871413)" fill="#ff9843" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" d="M0 0.70875L26.4487 14.3662L52.785 0L26.46 12.4537L0 0.70875" sodipodi:nodetypes="ccccc"/><path id="shape2" transform="translate(36.144, 25.3628623038909)" fill="url(#gradient0)" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" d="M0.634686 0L3.51844 0.039375L6.15844 3.48188L6.37594 4.08188L8.53594 4.22156L8.78625 4.44938L8.89875 4.75594L8.73281 5.1075L8.45156 5.29875L5.66719 5.30156L5.23125 4.43531L4.97531 3.97125L3.13594 5.28188L4.58437 7.335L4.71375 7.69781L4.5 8.08875L3.98531 8.28281L0.433125 9.15188L0.1125 8.95219L0 8.63438L0.12375 8.10844L0.542812 7.88906L2.71687 7.44188L0.759375 5.30438L0.692814 4.92563L0.854064 4.51313L3.39281 2.06063L3.41906 1.82063L2.91281 1.13438L0.685314 1.11938L0.479064 0.841877L0.381564 0.444377L0.565314 0.178127L0.634686 0" sodipodi:nodetypes="cccccccccccccccccccccccccccccccccc"/><ellipse id="shape3" transform="translate(41.9025000181794, 25.7287500028312)" rx="1.2" ry="1.14" cx="1.2" cy="1.14" fill="url(#gradient1)" fill-rule="evenodd" stroke="#017368" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel"/><rect id="shape4" transform="translate(33.9731250042468, 27.4715625003353)" fill="url(#gradient2)" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" width="3.45281100858425" height="0.720000000000002"/><rect id="shape01" transform="translate(32.7271818973201, 28.7540574984123)" fill="url(#gradient3)" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" width="3.45281100858425" height="0.720000000000002"/><rect id="shape02" transform="translate(31.3162350061556, 30.1227992153319)" fill="url(#gradient4)" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" width="3.45281100858425" height="0.720000000000002"/><path id="shape5" transform="translate(32.3099987161203, 30.5324987867515)" fill="url(#gradient5)" fill-rule="evenodd" stroke="none" stroke-width="0.0012" stroke-linecap="square" stroke-linejoin="bevel" d="M3.7575 0L3.87 0.38625L4.0875 0.7275L4.4925 1.08375L3.2775 2.14875L1.86375 3.25875L0.63375 4.11375L0.35625 4.08375L0.10875 3.9225L0 3.60375L0.1275 3.21L1.87875 1.71L3.2775 0.435L3.7575 0" sodipodi:nodetypes="cccccccccccccc"/><text id="shape6" krita:useRichText="false" text-rendering="auto" krita:textVersion="3" transform="matrix(1 -0.00304510559685142 0 1 10.4999998281913 46.7399996954252)" fill="#0489ca" stroke-opacity="0" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-linejoin="bevel" letter-spacing="0" word-spacing="0" style="text-align: start;text-align-last: auto;font-family: Arial;font-size: 7;"><tspan x="0">ZWOLSE</tspan></text><text id="shape7" krita:useRichText="true" text-rendering="auto" krita:textVersion="3" transform="translate(39.8099995866483, 46.4999996870808)" fill="#0489ca" stroke-opacity="0" stroke="#000000" stroke-width="0" stroke-linecap="square" stroke-linejoin="bevel" letter-spacing="0" style="text-align: start;text-align-last: auto;font-family: Segoe UI;font-size: 7;font-weight: 700;"><tspan x="0">LOPERS</tspan></text>
+</svg>

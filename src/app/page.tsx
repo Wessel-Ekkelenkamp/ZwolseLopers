@@ -34,16 +34,16 @@ export default function Home() {
         >
 
            <RunCard
-        title="Ochtendloop Zwolle"
-        date="14 Aug 2025"
-        time="07:15"
-        distance="10"
-        startLocation="Park Wezenlanden"
-        speed="5:12 min/km"
+        title="Zwolselopers website"
+        date="Coming soon"
+        time="00:38"
+        distance="038"
+        startLocation="zwolselopers.nl"
+        speed="0:38 min/km"
         images={[
-          "/zwolselopers.png",
-          "/zwolselopers.png",
-          "/zwolselopers.png"
+          "/images/zwolselopers.svg",
+          "/images/zwolselopers.svg",
+          "/images/zwolselopers.svg"
         ]}
       />
 
