@@ -10,12 +10,14 @@ type ImageCarouselProps = {
 export default function ImageCarousel({ images }: ImageCarouselProps) {
   if (images.length === 1) {
     return (
-      <div className="relative w-full h-64">
+      <div className="relative w-full aspect-auto">
         <Image
           src={images[0]}
           alt="Image"
-          fill
-          className="object-cover rounded-xl"
+          width={1200}
+          height={0}
+          sizes="100vw"
+          className="w-full h-auto rounded-xl object-contain"
         />
       </div>
     );
@@ -24,12 +26,14 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
   return (
     <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
       {images.map((img, idx) => (
-        <div key={idx} className="relative flex-shrink-0 w-72 h-64 snap-center">
+        <div key={idx} className="flex-shrink-0 w-full sm:w-[400px]">
           <Image
             src={img}
             alt={`Image ${idx + 1}`}
-            fill
-            className="object-cover rounded-xl"
+            width={1200}
+            height={0}
+            sizes="100vw"
+            className="w-full h-auto rounded-xl object-contain"
           />
         </div>
       ))}
