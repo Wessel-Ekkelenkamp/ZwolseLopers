@@ -47,13 +47,7 @@ Op 7 februari organiseren we als hardloopgroep de Zwolselopers de marathon van Z
       >
         rondje zwolle
       </a>). We willen er vooral een gezellige hardloopdag van maken in de sfeer van een lange duurloop. Verwacht dus geen PR in tijd, maar in gezelligheid. Klinkt dit je als muziek in de oren, meld je dan snel aan via dit formulier. Er zijn namelijk maar 75 plekken beschikbaar. <br/>  
-      <strong className="mt-4 block">Wat verwachten we van jou:</strong>
-  <div className="ml-4 mt-2 space-y-1">
-    <div><span className="font-bold mr-2">1.</span>Voldoende fitheid voor het comfortabel lopen van een marathon</div>
-    <div><span className="font-bold mr-2">2.</span>Gezelligheid</div>
-    <div><span className="font-bold mr-2">3.</span>Eigen verantwoordelijkheid voor eten en drinken</div>
-  </div> <br/>
-
+<br/>
   <strong>Wat kun je van ons verwachten:</strong>
   <div className="ml-4 mt-2 space-y-1">
     <div><span className="font-bold mr-2">1.</span>Een gezellige groep en een gezellig evenement</div>
