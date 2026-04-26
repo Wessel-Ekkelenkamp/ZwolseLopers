@@ -3,23 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Header from "../components/Header";
+import { Pin, Library, Plus, X, UploadCloud, CheckCircle2 } from "lucide-react";
+import { useUser } from "../hooks/useUser";
+import { useRouter } from "next/navigation";
+import { storageService } from "@/lib/storage";
+import MediaLibrary from "./mediaLibrary"
+import RichTextEditor from "../components/admin/RTEinputfield";
+
 
 type PostType = "regular" | "run";
 type Platform = "strava" | "instagram" | "facebook";
 
 export default function AdminPanel() {
+  const { user, isAdmin, loading: authLoading, username } = useUser();
+  const router = useRouter();
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+
   const [postType, setPostType] = useState<PostType>("regular");
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(["strava"]);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{ id: string; email: string; username: string } | null>(null);
   
+  // State for form fields
+  const [shouldPin, setShouldPin] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [distance, setDistance] = useState("");
   const [startLocation, setStartLocation] = useState("");
-  const [speed, setSpeed] = useState("");
+  const [speed, setSpeed] = useState("5:30");
   const [maxParticipants, setMaxParticipants] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [imageInput, setImageInput] = useState("");
@@ -27,170 +37,150 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+
+const handlePaceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9:]/g, "");
+    
+    if (val.length === 3 && !val.includes(":")) {
+      val = val.slice(0, 1) + ":" + val.slice(1);
+    }
+    
+    if (val.split(":").length <= 2) setSpeed(val);
+  };
 
   useEffect(() => {
-  const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', user.id)
-        .single();
-
-      setCurrentUser({ 
-        id: user.id,
-        email: user.email!, 
-        username: profile?.username || '' 
-      });
+    if (!authLoading && (!user || !isAdmin)) {
+      router.push("/");
     }
-    setLoadingUser(false);
-  };
+  }, [user, isAdmin, authLoading, router]);
 
-  loadCurrentUser();
-}, []);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files) {
+    const files = Array.from(e.target.files);
+    setImageFiles((prev) => [...prev, ...files]);
+  }
+};
 
-  const togglePlatform = (platform: Platform) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platform) 
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
-    );
-  };
+const handleSelectFromLibrary = (url: string) => {
+  setImages(prev => 
+    prev.includes(url) 
+      ? prev.filter(u => u !== url) 
+      : [...prev, url]
+  );
+};
 
-  const addImage = () => {
-    if (imageInput.trim()) {
-      setImages([...images, imageInput.trim()]);
-      setImageInput("");
-    }
-  };
+const removeFile = (index: number) => {
+  setImageFiles(imageFiles.filter((_, i) => i !== index));
+};
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
 
   const handleSubmit = async () => {
-    setError("");
-    setSuccess("");
+  setError("");
+  setSuccess("");
 
-    // Validation
-    if (!title.trim()) {
-      setError("Title is required!");
+  // --- 1. Validation Logic ---
+  if (!title.trim()) { setError("Titel is verplicht!"); return; }
+  
+  if (postType === "regular" && !content.trim()) { 
+    setError("Inhoud is verplicht voor een normale post!"); 
+    return; 
+  }
+
+  if (postType === "run") {
+    if (!date || !time || !distance || !startLocation || !speed) {
+      setError("Alle run-velden zijn verplicht!");
       return;
     }
-
-    if (postType === "regular" && !content.trim()) {
-      setError("Content is required for regular posts!");
+    const paceRegex = /^\d{1,2}:[0-5][0-9]$/;
+    if (!paceRegex.test(speed)) {
+      setError("Tempo moet in formaat M:SS zijn (bijv. 5:30)");
       return;
     }
+  }
 
+  if (!user) { setError("Je moet ingelogd zijn!"); return; }
+
+  setLoading(true);
+
+  try {
+    // --- 2. Handle Image Uploads First ---
+    let newUploadedUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      newUploadedUrls = await storageService.uploadImages(imageFiles);
+    }
+    const allFinalUrls = [...images, ...newUploadedUrls];
+
+    // --- 3. Create Base Post ---
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .insert({
+        type: postType === 'run' ? 'run' : 'post',
+        title: title,
+        content: content || null,
+        author_id: user.id,
+        is_pinned: false 
+      })
+      .select()
+      .single();
+
+    if (postError) throw postError;
+
+    // --- 4. Create Run Details (Specific to Run) ---
     if (postType === "run") {
-      if (!date || !time || !distance || !startLocation || !speed) {
-        setError("All run fields are required!");
-        return;
-      }
+      const { error: runError } = await supabase
+        .from('runs')
+        .insert({
+          id: post.id,
+          run_date: date,
+          run_time: time,
+          distance: parseFloat(distance),
+          start_location: startLocation,
+          average_speed: speed,
+          max_participants: maxParticipants ? parseInt(maxParticipants) : null,
+        });
+      if (runError) throw runError;
     }
 
-    if (!currentUser) {
-      setError("You must be logged in!");
-      return;
+    // --- 5. Handle Post Images (Shared Table) ---
+    if (allFinalUrls.length > 0) {
+      const imageInserts = allFinalUrls.map((url, index) => ({
+        post_id: post.id,
+        image_url: url,
+        display_order: index,
+      }));
+      const { error: imgError } = await supabase.from('post_images').insert(imageInserts);
+      if (imgError) throw imgError;
     }
 
-    setLoading(true);
-
-    try {
-      if (postType === "run") {
-        // Create run post
-        const { data: post, error: postError } = await supabase
-          .from('posts')
-          .insert({
-            type: 'run',
-            title: title,
-            content: content || null,
-            author_id: currentUser.id,
-          })
-          .select()
-          .single();
-
-        if (postError) throw postError;
-
-        // Create run details
-        const { error: runError } = await supabase
-          .from('runs')
-          .insert({
-            id: post.id,
-            run_date: date,
-            run_time: time,
-            distance: parseFloat(distance),
-            start_location: startLocation,
-            average_speed: speed,
-            max_participants: maxParticipants ? parseInt(maxParticipants) : null,
-            image_urls: images,
-          });
-
-        if (runError) throw runError;
-
-        // Add images if any
-        if (images.length > 0) {
-          const imageInserts = images.map((url, index) => ({
-            post_id: post.id,
-            image_url: url,
-            display_order: index,
-          }));
-
-          const { error: imageError } = await supabase
-            .from('post_images')
-            .insert(imageInserts);
-
-          if (imageError) console.error("Image insert error:", imageError);
-        }
-
-        setSuccess("Run created successfully!");
-      } else {
-        // Create regular post
-        const { data: post, error: postError } = await supabase
-          .from('posts')
-          .insert({
-            type: 'post',
-            title: title,
-            content: content,
-            author_id: currentUser.id,
-          })
-          .select()
-          .single();
-
-        if (postError) throw postError;
-
-        // Add images if any
-        if (images.length > 0) {
-          const imageInserts = images.map((url, index) => ({
-            post_id: post.id,
-            image_url: url,
-            display_order: index,
-          }));
-
-          const { error: imageError } = await supabase
-            .from('post_images')
-            .insert(imageInserts);
-
-          if (imageError) console.error("Image insert error:", imageError);
-        }
-
-        setSuccess("Post created successfully!");
-      }
-
-      // Reset form
-      resetForm();
-
-      // TODO: Integrate with Strava/Instagram/Facebook APIs based on selectedPlatforms
-
-    } catch (err: any) {
-      console.error("Error creating post:", err);
-      setError(err.message || "Failed to create post");
-    } finally {
-      setLoading(false);
+    // --- 6. Handle Pinning Logic ---
+    if (shouldPin && post?.id) {
+      await Promise.all([
+        supabase.from('posts').update({ is_pinned: false }).neq('id', post.id).eq('is_pinned', true),
+        supabase.from('posts').update({ is_pinned: true }).eq('id', post.id),
+      ]);
     }
-  };
+
+    setSuccess("Succes! Je wordt nu doorgestuurd...");
+    setTimeout(() => {
+      router.push(`/post/${post.id}`);
+    }, 1000);
+    const newPostId = post.id;
+    
+    // --- 7. Reset Form ---
+    resetForm();
+    setImageFiles([]);
+    setSpeed("5:30"); 
+
+    router.push(`/post/${newPostId}`);
+
+  } catch (err: any) {
+    console.error(err);
+    setError(err.message || "Fout bij het aanmaken van de post");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const resetForm = () => {
     setTitle("");
@@ -203,294 +193,170 @@ export default function AdminPanel() {
     setMaxParticipants("");
     setImages([]);
     setImageInput("");
+    setShouldPin(false);
   };
+  
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/auth';
-  };
+  // Prevent flicker while checking admin status
+  if (authLoading) return <div className="min-h-screen bg-blue-50 flex items-center justify-center text-blue-600 font-bold">Verifying admin...</div>;
+  if (!isAdmin) return null;
 
-  return (
-    <>
-    <Header/>
+return (
+  <>
+    <Header />
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Header Sectie */}
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Panel</h1>
-              <p className="text-gray-600">Create posts for Zwolse Lopers</p>
+              <p className="text-gray-600">Create content for Zwolse Lopers</p>
             </div>
-            {currentUser && (
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Logged in as</p>
-                <p className="font-semibold text-gray-800">{currentUser.username}</p>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-red-600 hover:underline mt-1"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Logged in as</p>
+              <p className="font-semibold text-gray-800">{username}</p>
+            </div>
           </div>
 
-          {/* Messages */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-              {success}
-            </div>
-          )}
+          {/* Berichten */}
+          {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
+          {success && <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">{success}</div>}
 
           <div className="space-y-6">
-            {/* Post Type Selection */}
+            {/* Post Type Toggle */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Post Type
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Post Type</label>
               <div className="flex gap-4">
-                <button
-                  onClick={() => setPostType("regular")}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                    postType === "regular"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Regular Post
-                </button>
-                <button
-                  onClick={() => setPostType("run")}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                    postType === "run"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Run Post
-                </button>
+                {(["regular", "run"] as PostType[]).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setPostType(type)}
+                    className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                      postType === type ? "bg-indigo-600 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {type === "regular" ? "Regular Post" : "Run Post"}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Platform Selection */}
+            {/* Titel Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Share to Platforms (Coming Soon)
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => togglePlatform("strava")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    selectedPlatforms.includes("strava")
-                      ? "bg-orange-500 text-white shadow-md"
-                      : "bg-gray-100 text-gray-400"
-                  }`}
-                >
-                  Strava
-                </button>
-                <button
-                  disabled
-                  className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
-                >
-                  Instagram
-                </button>
-                <button
-                  disabled
-                  className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
-                >
-                  Facebook
-                </button>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Title *
-              </label>
-              <input
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Titel *</label>
+              <input 
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter post title..."
+                className="text-gray-900 placeholder:text-gray-500 shadow-sm w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="Voeg titel toe"
               />
             </div>
 
-            {/* Conditional Fields */}
-            {postType === "regular" ? (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Content *
-                </label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Write your post content..."
-                />
+            {/* Specifieke velden voor Runs */}
+            {postType === "run" && (
+              <div className="text-gray-900 placeholder:text-gray-500 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" placeholder="afstand (km)" value={distance} onChange={(e) => setDistance(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="text" placeholder="Pace (m/km)" value={speed} onChange={(e) => setSpeed(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="text" placeholder="Start Locatie" value={startLocation} onChange={(e) => setStartLocation(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" placeholder="Max deelnemers (leeg voor geen max)" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Time *
-                    </label>
-                    <input
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Distance (km) *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={distance}
-                      onChange={(e) => setDistance(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="10.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Speed *
-                    </label>
-                    <input
-                      type="text"
-                      value={speed}
-                      onChange={(e) => setSpeed(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="5:30 min/km"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Start Location *
-                    </label>
-                    <input
-                      type="text"
-                      value={startLocation}
-                      onChange={(e) => setStartLocation(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Zwolle Centrum"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Max Participants (Optional)
-                    </label>
-                    <input
-                      type="number"
-                      value={maxParticipants}
-                      onChange={(e) => setMaxParticipants(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Leave empty for unlimited"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Add additional details about the run..."
-                  />
-                </div>
-              </>
             )}
 
-            {/* Images Section */}
+            {/* Content Textarea */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Images (External URLs)
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Paste image URLs from Imgur, Cloudinary, or any image hosting service
-              </p>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="url"
-                  value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && addImage()}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="https://i.imgur.com/example.jpg"
-                />
-                <button
-                  onClick={addImage}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    {postType === "run" ? "Beschrijving (optioneel)" : "Beschrijving *"}
+  </label>
+  <RichTextEditor 
+    content={content} 
+    onChange={(html) => setContent(html)} 
+    placeholder="Schrijf hier je bericht..."
+  />
+</div>
+
+            {/* --- MEDIA SECTIE --- */}
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-gray-700">Media Management</label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button 
+                  type="button"
+                  onClick={() => setIsLibraryOpen(true)}
+                  className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all"
                 >
-                  Add
+                  <Library size={20} /> Open Bibliotheek
                 </button>
+
+                <label className="flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 cursor-pointer transition-all shadow-md">
+                  <Plus size={20} /> Nieuwe Foto's
+                  <input type="file" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
+                </label>
               </div>
-              {images.length > 0 && (
-                <div className="space-y-2">
-                  {images.map((img, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
-                      <span className="flex-1 text-sm text-gray-600 truncate">{img}</span>
-                      <button
-                        onClick={() => removeImage(index)}
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+
+              {/* Geselecteerde Items Feedback */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl min-h-[100px]">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Geselecteerde items</h3>
+                <div className="flex flex-wrap gap-3">
+                  {/* Thumbnails van Library */}
+                  {images.map((url, i) => (
+                    <div key={`lib-${i}`} className="relative group w-16 h-16 rounded-lg overflow-hidden border-2 border-indigo-500 shadow-sm">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button 
+                        type="button"
+                        onClick={() => setImages(images.filter(u => u !== url))}
+                        className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
                       >
-                        Remove
+                        <X size={16} />
                       </button>
                     </div>
                   ))}
+
+                  {/* Labels van Nieuwe Uploads */}
+                  {imageFiles.map((file, i) => (
+                    <div key={`new-${i}`} className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">
+                      <UploadCloud size={14} className="animate-pulse" />
+                      <span className="truncate max-w-[100px]">{file.name}</span>
+                      <button type="button" onClick={() => removeFile(i)} className="ml-1 hover:text-red-500 text-lg">×</button>
+                    </div>
+                  ))}
+
+                  {images.length === 0 && imageFiles.length === 0 && (
+                    <p className="text-sm text-slate-400 italic py-2">Geen media geselecteerd</p>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Pin Optie */}
+            <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-xl border border-orange-100">
+              <input
+                type="checkbox"
+                id="pinPost"
+                checked={shouldPin}
+                onChange={(e) => setShouldPin(e.target.checked)}
+                className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500 cursor-pointer"
+              />
+              <label htmlFor="pinPost" className="text-sm font-bold text-orange-800 flex items-center gap-2 cursor-pointer">
+                <Pin size={18} /> Pin dit bericht bovenaan de homepage
+              </label>
+            </div>
+
+            {/* Actie Knoppen */}
             <div className="flex gap-4 pt-4">
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`flex-1 py-3 px-6 rounded-lg font-semibold shadow-md transition-all ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                }`}
+                className="flex-1 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-gray-300 shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
               >
-                {loading ? "Creating..." : "Create Post"}
+                {loading ? "Creating..." : "Plaats Post"}
               </button>
-              <button
-                onClick={resetForm}
-                disabled={loading}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition-all"
+              <button 
+                onClick={resetForm} 
+                className="px-8 py-4 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all"
               >
                 Reset
               </button>
@@ -499,6 +365,14 @@ export default function AdminPanel() {
         </div>
       </div>
     </div>
-    </>
-  );
+
+    {/* Media Library Modal - Slechts één keer aanroepen buiten de main container */}
+    <MediaLibrary 
+      isOpen={isLibraryOpen}
+      onCloseAction={() => setIsLibraryOpen(false)}
+      onSelectAction={handleSelectFromLibrary}
+      selectedUrls={images} 
+    />
+  </>
+);
 }

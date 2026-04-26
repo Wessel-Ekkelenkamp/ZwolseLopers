@@ -5,11 +5,14 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../../components/Header";
+import { storageService } from "@/lib/storage";
+import { Camera, Loader2, User } from "lucide-react";
 
 export default function EditUserPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -19,6 +22,22 @@ export default function EditUserPage() {
   const [success, setSuccess] = useState("");
 
   const [showSecurity, setShowSecurity] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (!e.target.files || e.target.files.length === 0) return;
+  
+  setUploading(true);
+  try {
+    const file = e.target.files[0];
+    const newUrl = await storageService.uploadAvatar(file, currentUser.id);
+    setProfilePic(newUrl); 
+    setSuccess("Foto geüpload! Vergeet niet op te slaan.");
+  } catch (err: any) {
+    setError("Upload mislukt: " + err.message);
+  } finally {
+    setUploading(false);
+  }
+};
 
   useEffect(() => {
     const load = async () => {
@@ -41,24 +60,32 @@ export default function EditUserPage() {
   }, []);
 
   const saveProfile = async () => {
-    setError("");
-    setSuccess("");
+  setError("");
+  setSuccess("");
 
-    try {
-      await supabase
-        .from("profiles")
-        .update({ username, avatar_url: profilePic })
-        .eq("id", currentUser.id);
+  try {
+    const cleanUrl = profilePic.split('?')[0];
 
-      if (email !== currentUser.email) {
-        await supabase.auth.updateUser({ email });
-      }
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ 
+        username, 
+        avatar_url: cleanUrl
+      })
+      .eq("id", currentUser.id);
 
-      setSuccess("Profile updated!");
-    } catch (e: any) {
-      setError(e.message);
+    if (updateError) throw updateError;
+
+    if (email !== currentUser.email) {
+      const { error: emailError } = await supabase.auth.updateUser({ email });
+      if (emailError) throw emailError;
     }
-  };
+
+    setSuccess("Profiel succesvol bijgewerkt!");
+  } catch (e: any) {
+    setError("Fout bij opslaan: " + e.message);
+  }
+};
 
   const changePassword = async (pw: string) => {
     const { error } = await supabase.auth.updateUser({ password: pw });
@@ -74,34 +101,57 @@ export default function EditUserPage() {
     <div className="min-h-screen flex justify-center p-6 bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl space-y-6">
 
-        <h1 className="text-2xl font-bold">Edit Profile</h1>
+        <h1 className="text-gray-500 text-2xl font-bold">Edit Profile</h1>
 
         {error && <p className="text-red-600">{error}</p>}
         {success && <p className="text-green-600">{success}</p>}
 
         {/* PROFILE PIC */}
-        <label className="font-semibold text-sm">Profile Picture URL</label>
-        <input
-          type="url"
-          className="w-full border p-2 rounded"
-          value={profilePic}
-          onChange={e => setProfilePic(e.target.value)}
+        <div className="flex flex-col items-center gap-4 py-4">
+  <div className="relative w-24 h-24">
+    <div className="w-full h-full rounded-full border-4 border-indigo-100 bg-gray-100 flex items-center justify-center overflow-hidden">
+      {profilePic ? (
+        <img 
+          src={profilePic} 
+          className="w-full h-full object-cover" 
+          alt="Profile"
         />
+      ) : (
+        <div className="text-gray-500 flex flex-col items-center">
+          <User size={40} />
+          <span className="text-[10px]">No Photo</span>
+        </div>
+      )}
+    </div>
+    
+    <label className="absolute bottom-0 right-0 bg-indigo-600 p-2 rounded-full text-white cursor-pointer hover:bg-indigo-700 shadow-lg transition-all">
+      {uploading ? <Loader2 className="animate-spin" size={16} /> : <Camera size={16} />}
+      <input 
+        type="file" 
+        className="hidden" 
+        accept="image/*" 
+        onChange={handleAvatarChange} 
+        disabled={uploading} 
+      />
+    </label>
+  </div>
+  <p className="text-xs text-gray-500 font-medium">Klik op de camera om je foto te wijzigen</p>
+</div>
 
         {/* USERNAME */}
-        <label className="font-semibold text-sm">Username</label>
+        <label className="text-gray-500 font-semibold text-sm">Username</label>
         <input
           type="text"
-          className="w-full border p-2 rounded"
+          className="text-gray-500 w-full border p-2 rounded"
           value={username}
           onChange={e => setUsername(e.target.value)}
         />
 
         {/* EMAIL */}
-        <label className="font-semibold text-sm">Email</label>
+        <label className="text-gray-500 font-semibold text-sm">Email</label>
         <input
           type="email"
-          className="w-full border p-2 rounded"
+          className="text-gray-500 w-full border p-2 rounded"
           value={email}
           onChange={e => setEmail(e.target.value)}
         />

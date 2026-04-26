@@ -10,26 +10,30 @@ type ImageCarouselProps = {
 export default function ImageCarousel({ images }: ImageCarouselProps) {
   if (images.length === 1) {
     return (
-      <div className="relative w-full h-64">
-        <Image
+      <div className="w-full bg-slate-50 rounded-xl overflow-hidden border border-gray-100 flex justify-center">
+        <img
           src={images[0]}
-          alt="Image"
-          fill
-          className="object-cover rounded-xl"
+          alt="Post image"
+          // max-h voorkomt dat de kaart oneindig lang wordt
+          // w-full + h-auto + object-contain behoudt de verhouding zonder te croppen
+          className="w-full h-auto max-h-[550px] object-contain"
         />
       </div>
     );
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+    <div className="w-full flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
       {images.map((img, idx) => (
-        <div key={idx} className="relative flex-shrink-0 w-72 h-64 snap-center">
-          <Image
+        <div 
+          key={idx} 
+
+          className="relative flex-shrink-0 w-[90%] md:w-[350px] snap-center bg-slate-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center"
+        >
+          <img
             src={img}
             alt={`Image ${idx + 1}`}
-            fill
-            className="object-cover rounded-xl"
+            className="w-full h-auto max-h-[450px] object-contain"
           />
         </div>
       ))}

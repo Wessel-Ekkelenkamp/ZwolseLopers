@@ -1,3 +1,4 @@
+import { Run } from "./run";
 
 export type Post = {
   id: string;

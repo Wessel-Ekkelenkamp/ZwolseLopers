@@ -1,0 +1,11 @@
+fix
+deleting image throws error and selects all in post editor
+contact pagina
+hefdpagina tekstje
+icon
+buiten een modal/menu klikken sluit het
+profiel verwijderen
+
+implement\
+tests
+backup database
