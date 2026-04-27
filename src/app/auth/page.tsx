@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { DB } from "@/lib/db";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function AuthPage() {
+function AuthPageContent() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -207,5 +207,13 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthPageContent />
+    </Suspense>
   );
 }
