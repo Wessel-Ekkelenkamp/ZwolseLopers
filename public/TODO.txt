@@ -1,0 +1,9 @@
+fix
+hefdpagina tekstje
+icon
+buiten een modal/menu klikken sluit het
+profiel verwijderen
+
+implement\
+tests
+backup database
