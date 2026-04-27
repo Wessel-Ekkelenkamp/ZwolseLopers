@@ -39,7 +39,6 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         )
       `)
       .eq('id', id)
-      .eq('run.signups.status', 'confirmed')
       .single(),
     user
       ? supabase.from(DB.TABLES.PROFILES).select('role').eq('id', user.id).single()
@@ -74,7 +73,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
                 {[
                   { label: 'Afstand', val: `${post.run.distance} km`, color: 'blue' },
                   { label: 'Datum', val: post.run.run_date, color: 'slate' },
-                  { label: 'Tijd', val: post.run.run_time.substring(0, 5), color: 'slate' },
+                  { label: 'Tijd', val: post.run.run_time?.substring(0, 5) ?? '—', color: 'slate' },
                   { label: 'Tempo', val: `${post.run.average_speed} min/km`, color: 'orange' }
                 ].map((stat, i) => (
                   <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
