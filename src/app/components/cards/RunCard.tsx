@@ -5,8 +5,8 @@ import ImageCarousel from "./ImageCarousel";
 import CommentPanel from "./CommentPanel";
 import { RunCardProps } from "../../types/runCardProps";
 import { Calendar, Clock, MapPin, Gauge } from "lucide-react";
+import { sanitizePost } from "@/lib/sanitize";
 import SignupButton from "../buttons/SignupButton";
-import DOMPurify from 'isomorphic-dompurify';
 
 export default function RunCard({ post, run, hideComments = false, clickable = false }: RunCardProps) {
   const imageUrls = (post.images || []).map(img => img.image_url);
@@ -57,7 +57,7 @@ return (
 
           <div 
   className="prose prose-sm text-slate-700"
-  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }} 
+  dangerouslySetInnerHTML={{ __html: sanitizePost(post.content || '') }}
 />
 
           {imageUrls.length > 0 && (

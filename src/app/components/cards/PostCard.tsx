@@ -5,7 +5,7 @@ import Link from "next/link";
 import ImageCarousel from "./ImageCarousel";
 import CommentPanel from "./CommentPanel";
 import { Post } from "@/src/app/types/post";
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizePost } from "@/lib/sanitize";
 import { PostCardProps } from "../../types/PostCardProps";
 
 
@@ -29,7 +29,7 @@ export default function PostCard({ post, hideComments = false, clickable = false
         
         <div 
   className="prose prose-sm text-slate-700"
-  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }} 
+  dangerouslySetInnerHTML={{ __html: sanitizePost(post.content || '') }}
 />
         
         {post.images && post.images.length > 0 && (

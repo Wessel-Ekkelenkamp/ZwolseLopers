@@ -56,12 +56,17 @@ export default function CommentPanel({ postId, cardHeight }: CommentPanelProps) 
       return;
     }
 
-    if (!newComment.trim() || newComment.length > 256) return;
+     const trimmed = newComment.trim();
+  if (!trimmed || trimmed.length > 256) return;
 
-    const comment = await createComment(postId, newComment);
-    if (comment) {
-      setComments([comment, ...comments]);
-      setNewComment("");
+    const sanitized = trimmed.replace(/<[^>]*>/g, "");
+  if (!sanitized) return;
+
+
+    const comment = await createComment(postId, sanitized);
+  if (comment) {
+    setComments([comment, ...comments]);
+    setNewComment("");
     }
   };
 

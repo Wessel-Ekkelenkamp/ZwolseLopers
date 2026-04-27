@@ -6,7 +6,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { DB } from "@/lib/db";
 import ImageCarousel from "../../components/cards/ImageCarousel";
 import AdminActions from "../../components/buttons/AdminActions";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import CommentPanel from "../../components/cards/CommentPanel";
 import LiveParticipants from "../../components/post/LiveParticipants";
 
@@ -51,7 +51,29 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   const imageUrls = post?.post_images?.map((img: any) => img.image_url) || [];
 
-  const sanitizedContent = DOMPurify.sanitize(post.content || "");
+  const sanitizedContent = sanitizeHtml(post.content || "", {
+  allowedTags: [
+    // Headings
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    // Text formatting
+    "p", "strong", "em", "s", "code", "pre", "blockquote",
+    // Lists
+    "ul", "ol", "li",
+    // Links & media
+    "a", "img", "figure", "figcaption",
+    // Structure
+    "br", "hr", "div", "span",
+  ],
+  allowedAttributes: {
+    a: ["href", "target", "rel", "class"],
+    img: ["src", "alt", "width", "height", "class"],
+    "*": ["class"],
+  },
+  // Force all links to be safe
+  transformTags: {
+    a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }),
+  },
+});
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
