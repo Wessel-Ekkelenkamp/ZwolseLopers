@@ -5,7 +5,7 @@ import ImageCarousel from "./ImageCarousel";
 import CommentPanel from "./CommentPanel";
 import { RunCardProps } from "../../types/runCardProps";
 import { Calendar, Clock, MapPin, Gauge } from "lucide-react";
-import SignupButton from "../../components/buttons/SingupButton";
+import SignupButton from "../buttons/SignupButton";
 import DOMPurify from 'isomorphic-dompurify';
 
 export default function RunCard({ post, run, hideComments = false, clickable = false }: RunCardProps) {

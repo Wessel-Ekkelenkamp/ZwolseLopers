@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase"; 
+import { supabase } from "@/lib/supabase";
+import { DB } from "@/lib/db";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function AuthPage() {
@@ -63,11 +64,11 @@ export default function AuthPage() {
 
         if (data.user) {
           const { error: profileError } = await supabase
-            .from('profiles')
+            .from(DB.TABLES.PROFILES)
             .insert({
               id: data.user.id,
               username: username,
-              role: 'user',
+              role: DB.ROLES.DEFAULT,
             });
 
           if (profileError) throw profileError;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { DB } from "@/lib/db";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import RunCardMini from "../components/cards/RunCardMini";
@@ -26,7 +27,7 @@ export default function UserPage() {
     const today = new Date().toISOString().split("T")[0];
 
     const { data, error } = await supabase
-      .from("run_signups")
+      .from(DB.TABLES.RUN_SIGNUPS)
       .select(`
         *,
         run:run_id (

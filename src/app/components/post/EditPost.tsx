@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { X, Save, Trash2, Calendar, Clock, MapPin, Gauge, Users, ImageIcon, Plus } from 'lucide-react';
 import { updatePost, deletePost } from '@/lib/posts';
 import { useRouter } from 'next/navigation';
-import MediaLibrary from '../../admin/mediaLibrary';
+import MediaLibrary from '../admin/MediaLibrary';
 
 export default function EditPostModal({ post, onClose }: { post: any; onClose: () => void }) {
   const router = useRouter();

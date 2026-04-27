@@ -1,5 +1,6 @@
 // lib/posts.ts
 import { supabase } from './supabase';
+import { DB } from './db';
 
 export async function updatePost(postId: string, updates: {
   title: string;
@@ -10,9 +11,9 @@ export async function updatePost(postId: string, updates: {
 }) {
   // Run post + run updates in parallel
   const coreUpdates = [
-    supabase.from('posts').update({ title: updates.title, content: updates.content }).eq('id', postId),
+    supabase.from(DB.TABLES.POSTS).update({ title: updates.title, content: updates.content }).eq('id', postId),
     ...(updates.run_info ? [
-      supabase.from('runs').update({
+      supabase.from(DB.TABLES.RUNS).update({
         run_date: updates.run_info.run_date,
         run_time: updates.run_info.run_time,
         distance: updates.run_info.distance,
@@ -30,10 +31,10 @@ export async function updatePost(postId: string, updates: {
   // Run image delete + insert in parallel
   const imageOps = [
     ...(updates.imagesToDelete?.length
-      ? [supabase.from('post_images').delete().in('id', updates.imagesToDelete)]
+      ? [supabase.from(DB.TABLES.POST_IMAGES).delete().in('id', updates.imagesToDelete)]
       : []),
     ...(updates.imagesToAdd?.length
-      ? [supabase.from('post_images').insert(updates.imagesToAdd.map(url => ({ post_id: postId, image_url: url })))]
+      ? [supabase.from(DB.TABLES.POST_IMAGES).insert(updates.imagesToAdd.map(url => ({ post_id: postId, image_url: url })))]
       : []),
   ];
 
@@ -48,7 +49,7 @@ export async function updatePost(postId: string, updates: {
 
 export async function deletePost(postId: string) {
   const { error } = await supabase
-    .from('posts')
+    .from(DB.TABLES.POSTS)
     .delete()
     .eq('id', postId);
 

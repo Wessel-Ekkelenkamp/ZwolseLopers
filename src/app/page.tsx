@@ -1,11 +1,12 @@
 import { createServerSupabase } from "@/lib/supabase-server";
+import { DB } from "@/lib/db";
 import Header from "./components/Header";
 import PostCard from "./components/cards/PostCard";
 import RunCard from "./components/cards/RunCard";
 import { Post } from "@/src/app/types/post";
 import Link from "next/link";
 import { ArrowRight, Calendar, Pin } from "lucide-react";
-import Footer from "./components/footer";
+import Footer from "./components/Footer";
 import RunCardMini from "./components/cards/RunCardMini";
 
 export const revalidate = 60;
@@ -16,14 +17,14 @@ export default async function HomePage() {
 
   const [{ data: pinnedData }, { data: nextRunData }] = await Promise.all([
     supabase
-      .from('posts')
+      .from(DB.TABLES.POSTS)
       .select('*, images:post_images(image_url), runs(*)')
       .eq('is_pinned', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
-      .from('posts')
+      .from(DB.TABLES.POSTS)
       .select('id, type, title, content, created_at, run:runs!inner(id, run_date, run_time, distance, start_location, average_speed, max_participants)')
       .eq('type', 'run')
       .filter('runs.run_date', 'gte', today)

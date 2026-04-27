@@ -1,7 +1,8 @@
 import { supabase } from "./supabase";
+import { DB } from "./db";
 import imageCompression from "browser-image-compression";
 
-const BUCKET_NAME = "images";
+const BUCKET_NAME = DB.BUCKETS.IMAGES;
 
 export const storageService = {
   async uploadImages(files: File[]): Promise<string[]> { 
@@ -64,14 +65,14 @@ export const storageService = {
       const compressedFile = await imageCompression(file, options);
     
       const { data, error } = await supabase.storage
-        .from('avatars')
+        .from(DB.BUCKETS.AVATARS)
         .upload(`${userId}/profile.webp`, compressedFile, {
           upsert: true 
         });
 
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(`${userId}/profile.webp`);
+      const { data: urlData } = supabase.storage.from(DB.BUCKETS.AVATARS).getPublicUrl(`${userId}/profile.webp`);
       return `${urlData.publicUrl}?t=${Date.now()}`; // Cache-buster toevoegen
     } catch (error) {
       console.error("Avatar upload error:", error);

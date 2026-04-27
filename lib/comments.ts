@@ -1,5 +1,6 @@
 // /lib/comments.ts
 import { supabase } from './supabase';
+import { DB } from './db';
 
 export type Comment = {
   id: string;
@@ -14,7 +15,7 @@ export type Comment = {
 
 export async function getComments(postId: string): Promise<Comment[]> {
   const { data, error } = await supabase
-    .from('comments')
+    .from(DB.TABLES.COMMENTS)
     .select(`
       *,
       profiles:user_id (username)
@@ -36,7 +37,7 @@ export async function createComment(postId: string, content: string): Promise<Co
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from('comments')
+    .from(DB.TABLES.COMMENTS)
     .insert({
       post_id: postId,
       user_id: user.id,
@@ -58,7 +59,7 @@ export async function createComment(postId: string, content: string): Promise<Co
 
 export async function deleteComment(commentId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('comments')
+    .from(DB.TABLES.COMMENTS)
     .delete()
     .eq('id', commentId);
 

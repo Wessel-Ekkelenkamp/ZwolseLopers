@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Edit3, Share2 } from 'lucide-react';
 import PinButton from './PinButton';
-import EditPostModal from '../../post/[id]/EditPost';
+import EditPostModal from '../post/EditPost';
 import ExportModal from '../admin/ExportModal';
 
 export default function AdminActions({ post }: { post: any }) {

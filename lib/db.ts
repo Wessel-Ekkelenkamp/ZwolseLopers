@@ -1,0 +1,18 @@
+export const DB = {
+  TABLES: {
+    PROFILES: process.env.NEXT_PUBLIC_TABLE_PROFILES!,
+    POSTS: process.env.NEXT_PUBLIC_TABLE_POSTS!,
+    RUNS: process.env.NEXT_PUBLIC_TABLE_RUNS!,
+    COMMENTS: process.env.NEXT_PUBLIC_TABLE_COMMENTS!,
+    POST_IMAGES: process.env.NEXT_PUBLIC_TABLE_POST_IMAGES!,
+    RUN_SIGNUPS: process.env.NEXT_PUBLIC_TABLE_RUN_SIGNUPS!,
+  },
+  BUCKETS: {
+    IMAGES: process.env.NEXT_PUBLIC_BUCKET_IMAGES!,
+    AVATARS: process.env.NEXT_PUBLIC_BUCKET_AVATARS!,
+  },
+  ROLES: {
+    ADMIN: process.env.NEXT_PUBLIC_ADMIN_ROLE!,
+    DEFAULT: process.env.NEXT_PUBLIC_DEFAULT_ROLE!,
+  },
+} as const;

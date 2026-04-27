@@ -1,8 +1,9 @@
 import Header from "../../components/Header";
-import Footer from "../../components/footer";
-import SignupButton from "../../components/buttons/SingupButton";
+import Footer from "../../components/Footer";
+import SignupButton from "../../components/buttons/SignupButton";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { DB } from "@/lib/db";
 import ImageCarousel from "../../components/cards/ImageCarousel";
 import AdminActions from "../../components/buttons/AdminActions";
 import DOMPurify from "isomorphic-dompurify";
@@ -17,7 +18,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   const [{ data: post, error }, profileResult] = await Promise.all([
     supabase
-      .from('posts')
+      .from(DB.TABLES.POSTS)
       .select(`
         *,
         profiles!posts_author_id_fkey(username, avatar_url),
@@ -41,13 +42,13 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
       .eq('run.signups.status', 'confirmed')
       .single(),
     user
-      ? supabase.from('profiles').select('role').eq('id', user.id).single()
+      ? supabase.from(DB.TABLES.PROFILES).select('role').eq('id', user.id).single()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
   if (error || !post) return notFound();
 
-  const isAdmin = profileResult?.data?.role === 'admin';
+  const isAdmin = profileResult?.data?.role === DB.ROLES.ADMIN;
 
   const imageUrls = post?.post_images?.map((img: any) => img.image_url) || [];
 

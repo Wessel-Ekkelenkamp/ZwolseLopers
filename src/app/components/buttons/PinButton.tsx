@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { DB } from "@/lib/db";
 import { Pin } from "lucide-react";
 
 type PinButtonProps = {
@@ -21,7 +22,7 @@ export default function PinButton({ postId, isPinnedInitially = false, onPinned 
     try {
       // 1. Unpin any currently pinned post
       const { error: unpinError } = await supabase
-        .from("posts")
+        .from(DB.TABLES.POSTS)
         .update({ is_pinned: false })
         .eq("is_pinned", true);
 
@@ -29,7 +30,7 @@ export default function PinButton({ postId, isPinnedInitially = false, onPinned 
 
       // 2. Pin the target post
       const { error: pinError } = await supabase
-        .from("posts")
+        .from(DB.TABLES.POSTS)
         .update({ is_pinned: true })
         .eq("id", postId);
 

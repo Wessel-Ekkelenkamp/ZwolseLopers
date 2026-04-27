@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
+import { DB } from './db';
 
 export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,21 +19,20 @@ export async function isAdmin(): Promise<boolean> {
   if (!user) return false;
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from(DB.TABLES.PROFILES)
     .select('role')
     .eq('id', user.id)
     .single();
 
-  return profile?.role === 'admin';
+  return profile?.role === DB.ROLES.ADMIN;
 }
 
-// Helper function to get current user profile
 export async function getCurrentProfile(): Promise<Profile | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from(DB.TABLES.PROFILES)
     .select('*')
     .eq('id', user.id)
     .single();

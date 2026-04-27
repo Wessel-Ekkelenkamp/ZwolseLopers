@@ -1,9 +1,10 @@
 import { createServerSupabase } from "@/lib/supabase-server";
+import { DB } from "@/lib/db";
 import PostCard from "../components/cards/PostCard";
 import RunCard from "../components/cards/RunCard";
 import { Post } from "@/src/app/types/post";
 import Header from "../components/Header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 
 export const revalidate = 60;
 
@@ -11,7 +12,7 @@ export default async function TimelinePage() {
   const supabase = await createServerSupabase();
 
   const { data, error } = await supabase
-    .from('posts')
+    .from(DB.TABLES.POSTS)
     .select(`
       *,
       images:post_images(image_url),

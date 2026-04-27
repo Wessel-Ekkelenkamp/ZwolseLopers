@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { DB } from "@/lib/db";
 import { User } from "@supabase/supabase-js";
 
 type UserContextValue = {
@@ -28,7 +29,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
       const { data, error } = await supabase
-        .from("profiles")
+        .from(DB.TABLES.PROFILES)
         .select("username, avatar_url, role")
         .eq("id", userId)
         .single();
@@ -59,7 +60,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   return (
     <UserContext.Provider value={{
       user,
-      isAdmin: profile?.role === "admin",
+      isAdmin: profile?.role === DB.ROLES.ADMIN,
       loading,
       username: profile?.username || user?.user_metadata?.username || "Gebruiker",
       avatar_url: profile?.avatar_url || null,

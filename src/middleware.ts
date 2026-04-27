@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { DB } from '@/lib/db';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -31,12 +32,12 @@ export async function middleware(request: NextRequest) {
     }
 
     const { data: profile } = await supabase
-      .from('profiles')
+      .from(DB.TABLES.PROFILES)
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.role !== 'admin') {
+    if (!profile || profile.role !== DB.ROLES.ADMIN) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

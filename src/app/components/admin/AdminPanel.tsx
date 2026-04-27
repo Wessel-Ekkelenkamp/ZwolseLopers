@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import Header from "../components/Header";
+import { DB } from "@/lib/db";
+import Header from "../Header";
 import { Pin, Library, Plus, X, UploadCloud, CheckCircle2 } from "lucide-react";
-import { useUser } from "../hooks/useUser";
+import { useUser } from "../../hooks/useUser";
 import { useRouter } from "next/navigation";
 import { storageService } from "@/lib/storage";
-import MediaLibrary from "./mediaLibrary"
-import RichTextEditor from "../components/admin/RTEinputfield";
+import MediaLibrary from "./MediaLibrary";
+import RichTextEditor from "./RTEinputfield";
 
 
 type PostType = "regular" | "run";
@@ -113,7 +114,7 @@ const removeFile = (index: number) => {
 
     // --- 3. Create Base Post ---
     const { data: post, error: postError } = await supabase
-      .from('posts')
+      .from(DB.TABLES.POSTS)
       .insert({
         type: postType === 'run' ? 'run' : 'post',
         title: title,
@@ -129,7 +130,7 @@ const removeFile = (index: number) => {
     // --- 4. Create Run Details (Specific to Run) ---
     if (postType === "run") {
       const { error: runError } = await supabase
-        .from('runs')
+        .from(DB.TABLES.RUNS)
         .insert({
           id: post.id,
           run_date: date,
@@ -149,15 +150,15 @@ const removeFile = (index: number) => {
         image_url: url,
         display_order: index,
       }));
-      const { error: imgError } = await supabase.from('post_images').insert(imageInserts);
+      const { error: imgError } = await supabase.from(DB.TABLES.POST_IMAGES).insert(imageInserts);
       if (imgError) throw imgError;
     }
 
     // --- 6. Handle Pinning Logic ---
     if (shouldPin && post?.id) {
       await Promise.all([
-        supabase.from('posts').update({ is_pinned: false }).neq('id', post.id).eq('is_pinned', true),
-        supabase.from('posts').update({ is_pinned: true }).eq('id', post.id),
+        supabase.from(DB.TABLES.POSTS).update({ is_pinned: false }).neq('id', post.id).eq('is_pinned', true),
+        supabase.from(DB.TABLES.POSTS).update({ is_pinned: true }).eq('id', post.id),
       ]);
     }
 
