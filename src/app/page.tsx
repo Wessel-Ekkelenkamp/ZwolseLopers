@@ -189,7 +189,7 @@ export default async function HomePage() {
                       Naast onze wekelijkse duurlopen organiseren we regelmatig gezellige evenementen. Het absolute hoogtepunt is Rondje Zwolle de Marathon: een unieke marathon rondom onze prachtige stad, georganiseerd voor en door hardlopers.
                     </p>
                     <p className="text-sm text-gray-600 leading-relaxed mt-3">
-                      Of je nu traint voor je eerste 10 kilometer, een halve marathon of een hele marathon, of gewoon graag samen loopt: bij de Zwolselopers is iedereen welkom. Trek je hardloopschoenen aan en loop een keer met ons mee!
+                      Of je nu traint voor een halve marathon of een hele marathon, of gewoon graag samen loopt: bij de Zwolselopers is iedereen welkom. Trek je hardloopschoenen aan en loop een keer met ons mee!
                     </p>
                     <p className="text-sm text-gray-600 leading-relaxed mt-3">
                       Benieuwd naar de volgende activiteit? Volg ons op{' '}
