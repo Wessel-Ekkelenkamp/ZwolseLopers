@@ -36,58 +36,22 @@ export async function DELETE() {
 
   const userId = user.id;
 
-  // Get all posts authored by this user
   const { data: userPosts } = await admin
     .from(DB.TABLES.POSTS)
     .select('id')
     .eq('author_id', userId);
   const userPostIds = userPosts?.map(p => p.id) ?? [];
 
-  // Null out parent_comment_id for replies referencing comments that will be deleted
-  const commentFilter = userPostIds.length > 0
-    ? `user_id.eq.${userId},post_id.in.(${userPostIds.join(',')})`
-    : `user_id.eq.${userId}`;
-  const { data: deletingComments } = await admin
-    .from(DB.TABLES.COMMENTS)
-    .select('id')
-    .or(commentFilter);
-  const deletingCommentIds = deletingComments?.map(c => c.id) ?? [];
-  if (deletingCommentIds.length > 0) {
-    await admin
-      .from(DB.TABLES.COMMENTS)
-      .update({ parent_comment_id: null })
-      .in('parent_comment_id', deletingCommentIds);
-  }
-
-  // Delete run signups for runs owned by this user (so we can delete those runs)
-  if (userPostIds.length > 0) {
-    await admin.from(DB.TABLES.RUN_SIGNUPS).delete().in('run_id', userPostIds);
-  }
-
-  // Delete run signups BY this user
-  await admin.from(DB.TABLES.RUN_SIGNUPS).delete().eq('user_id', userId);
-
-  // Delete comments on user's posts
-  if (userPostIds.length > 0) {
-    await admin.from(DB.TABLES.COMMENTS).delete().in('post_id', userPostIds);
-  }
-  // Delete user's own comments on other posts
-  await admin.from(DB.TABLES.COMMENTS).delete().eq('user_id', userId);
-
-  // Delete post images for user's posts
   if (userPostIds.length > 0) {
     await admin.from(DB.TABLES.POST_IMAGES).delete().in('post_id', userPostIds);
-    // Delete run records before posts (runs.id FK references posts.id)
-    await admin.from(DB.TABLES.RUNS).delete().in('id', userPostIds);
+    await admin.from(DB.TABLES.EVENTS).delete().in('id', userPostIds);
     await admin.from(DB.TABLES.POSTS).delete().in('id', userPostIds);
   }
 
-  // Delete avatar from storage
   await admin.storage
     .from(DB.BUCKETS.AVATARS)
     .remove([`${userId}/profile.webp`]);
 
-  // Delete profile
   const { error: profileError } = await admin
     .from(DB.TABLES.PROFILES)
     .delete()
@@ -96,7 +60,6 @@ export async function DELETE() {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
   }
 
-  // Delete auth user
   const { error: authError } = await admin.auth.admin.deleteUser(userId);
   if (authError) {
     return NextResponse.json({ error: authError.message }, { status: 500 });

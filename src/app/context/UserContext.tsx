@@ -34,13 +34,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         .eq("id", userId)
         .single();
       if (!error && data) setProfile(data);
+      setLoading(false);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setLoading(false);
-      if (currentUser) fetchProfile(currentUser.id);
+      if (currentUser) {
+        fetchProfile(currentUser.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -50,8 +54,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         fetchProfile(currentUser.id);
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

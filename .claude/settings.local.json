@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm uninstall *)",
       "Bash(grep -r \"TABLE_RUNS\\\\|BUCKET_AVATARS\" .env*)",
-      "Bash(grep -r \"TABLE_RUNS\\\\|BUCKET_AVATARS\" .env.local)"
+      "Bash(grep -r \"TABLE_RUNS\\\\|BUCKET_AVATARS\" .env.local)",
+      "Bash(git checkout *)",
+      "Bash(git push *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

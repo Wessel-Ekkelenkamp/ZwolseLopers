@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zwolse Lopers",
+  title: "Zwolselopers",
   description: "De gezelligste hardloopgroep van Zwolle",
   icons: {
-    icon: "/images/zwolselopers.svg",
+    icon: "/icons/zwolselopersicon.svg",
   },
   manifest: "/manifest.json",
 };

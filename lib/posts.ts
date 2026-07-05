@@ -1,25 +1,21 @@
-// lib/posts.ts
 import { supabase } from './supabase';
 import { DB } from './db';
 
 export async function updatePost(postId: string, updates: {
   title: string;
   content: string;
-  run_info?: any;
+  event_info?: any;
   imagesToDelete?: string[];
   imagesToAdd?: string[];
 }) {
-  // Run post + run updates in parallel
   const coreUpdates = [
     supabase.from(DB.TABLES.POSTS).update({ title: updates.title, content: updates.content }).eq('id', postId),
-    ...(updates.run_info ? [
-      supabase.from(DB.TABLES.RUNS).update({
-        run_date: updates.run_info.run_date,
-        run_time: updates.run_info.run_time,
-        distance: updates.run_info.distance,
-        start_location: updates.run_info.start_location,
-        average_speed: updates.run_info.average_speed,
-        max_participants: updates.run_info.max_participants === '' ? null : updates.run_info.max_participants,
+    ...(updates.event_info ? [
+      supabase.from(DB.TABLES.EVENTS).update({
+        event_date: updates.event_info.event_date,
+        event_time: updates.event_info.event_time,
+        location: updates.event_info.location,
+        distance: updates.event_info.distance || null,
       }).eq('id', postId),
     ] : []),
   ];
@@ -28,7 +24,6 @@ export async function updatePost(postId: string, updates: {
     if (error) throw error;
   }
 
-  // Run image delete + insert in parallel
   const imageOps = [
     ...(updates.imagesToDelete?.length
       ? [supabase.from(DB.TABLES.POST_IMAGES).delete().in('id', updates.imagesToDelete)]

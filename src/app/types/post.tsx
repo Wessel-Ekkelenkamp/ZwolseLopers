@@ -1,11 +1,12 @@
-import { Run } from "./run";
+import { Event } from "./event";
 
 export type Post = {
   id: string;
-  type: "post" | "run";
+  type: "post" | "event";
   title: string;
   content: string | null;
   created_at: string;
-  run?: Run | null;
+  is_pinned?: boolean;
+  event?: Event | null;
   images?: { image_url: string }[];
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { X, CheckCircle2 } from "lucide-react";
 import { storageService } from "@/lib/storage";
 
@@ -72,10 +73,12 @@ export default function MediaLibrary({ isOpen, onCloseAction: onClose, onSelectA
     isSelected ? "border-indigo-500 shadow-lg scale-95" : "border-transparent hover:border-slate-300"
   }`}
                   >
-                    <img 
-                      src={img.url} 
-                      alt={img.name} 
-                      className="w-full h-full object-cover"
+                    <Image
+                      src={img.url}
+                      alt={img.name}
+                      fill
+                      sizes="(min-width: 1024px) 20vw, (min-width: 768px) 25vw, 50vw"
+                      className="object-cover"
                     />
                     
                     {/* Hover overlay */}

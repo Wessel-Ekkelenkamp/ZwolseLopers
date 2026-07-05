@@ -2,50 +2,109 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ImageCarousel from "./ImageCarousel";
-import CommentPanel from "./CommentPanel";
-import { Post } from "@/src/app/types/post";
-import { sanitizePost } from "@/lib/sanitize";
 import { PostCardProps } from "../../types/PostCardProps";
+import { Calendar, Clock, MapPin, Ruler } from "lucide-react";
 
+function formatEventDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
 
+export default function PostCard({ post, clickable = false }: PostCardProps) {
+  const firstImage = post.images?.[0]?.image_url ?? null;
+  const displayDate = new Date(post.created_at).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-export default function PostCard({ post, hideComments = false, clickable = false }: PostCardProps) {
-  return (
-    /* The Master Container: One shadow, one border, one rounded corner set */
-    <div className="flex flex-col lg:flex-row w-full bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 mb-8 items-start">
-      
-      {/* Left Side: Content */}
-      <div className="flex-1 p-6 flex flex-col min-w-0 w-full">
-        {clickable ? (
-          <Link href={`/post/${post.id}`}>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2 hover:text-blue-600 transition-colors">
-              {post.title}
-            </h2>
-          </Link>
-        ) : (
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">{post.title}</h2>
-        )}
-        
-        <div 
-  className="prose prose-sm text-slate-700"
-  dangerouslySetInnerHTML={{ __html: sanitizePost(post.content || '') }}
-/>
-        
-        {post.images && post.images.length > 0 && (
-          <div className="mt-4">
-            <ImageCarousel images={post.images.map((i) => i.image_url)} />
+  const cardContent = (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-orange-400 overflow-hidden mb-5 hover:shadow-md transition-shadow">
+      <div className="flex min-h-[160px]">
+
+        {/* Left: image thumbnail (only on clickable/list view when image exists) */}
+        {clickable && firstImage && (
+          <div className="w-44 md:w-56 flex-shrink-0 bg-gray-100 relative overflow-hidden">
+            <Image
+              src={firstImage}
+              alt={post.title}
+              fill
+              sizes="(min-width: 768px) 224px, 176px"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           </div>
         )}
+
+        {/* Right: content */}
+        <div className="flex-1 p-6 flex flex-col gap-3 min-w-0">
+          {/* Title + date */}
+          <div className="flex items-start justify-between gap-3">
+            <h2 className={`text-lg font-bold text-gray-900 leading-snug ${clickable ? "group-hover:text-[#2454a3] transition-colors" : ""}`}>
+              {post.title}
+            </h2>
+            <span className="text-xs font-bold text-orange-500 whitespace-nowrap flex-shrink-0 pt-0.5">
+              {displayDate}
+            </span>
+          </div>
+
+          {/* HTML content preview */}
+          {post.content && (
+            <div className="relative overflow-hidden" style={{ maxHeight: '9rem' }}>
+              <div
+                className="prose prose-sm max-w-none text-gray-500 [&_*]:text-gray-500"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+            </div>
+          )}
+
+          {/* Event detail row */}
+          {post.event && (
+            <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-auto pt-2 border-t border-gray-50">
+              <span className="flex items-center gap-1">
+                <Calendar size={12} className="text-orange-400" />
+                {formatEventDate(post.event.event_date)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={12} className="text-orange-400" />
+                {post.event.event_time?.slice(0, 5)}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin size={12} className="text-orange-400" />
+                {post.event.location}
+              </span>
+              {post.event.distance && (
+                <span className="flex items-center gap-1">
+                  <Ruler size={12} className="text-orange-400" />
+                  {post.event.distance} km
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right Side: Comments */}
-      {!hideComments && (
-        /* border-t on mobile, border-l on desktop to "connect" the panels */
-        <div className="lg:w-80 w-full border-t lg:border-t-0 lg:border-l border-gray-100 bg-slate-50/50">
-          <CommentPanel postId={post.id} />
+      {/* Full carousel below — detail page only */}
+      {!clickable && post.images && post.images.length > 0 && (
+        <div className="px-5 pb-5">
+          <ImageCarousel images={post.images.map((i) => i.image_url)} />
         </div>
       )}
     </div>
   );
+
+  if (clickable) {
+    return (
+      <Link href={`/post/${post.id}`} className="group block">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
